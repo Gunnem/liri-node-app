@@ -19,6 +19,7 @@
   "homepage": "https://github.com/Gunnem/liri-node-app#readme",
   "dependencies": {
     "axios": "^0.18.0",
+    "bandsintown": "^1.0.1",
     "dotenv": "^6.1.0",
     "fs": "0.0.1-security",
     "moment": "^2.22.2",

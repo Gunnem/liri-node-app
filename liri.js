@@ -2,43 +2,28 @@ require("dotenv").config();
 var keys = require("./keys.js");
 var fs = require("fs");
 var request = require("request");
-//var Spotify = require('spotify-web-api-node');
+var Bandsintown = require("bandsintown");
 var Spotify = require('node-spotify-api');
-//Require moment npm
 var moment = require('moment');
-moment().format();
-
-//creates log.txt file
-var filename = './log.txt';
-//NPM module used to write output to console and log.txt simulatneously
-var log = require('simple-node-logger').createSimpleFileLogger(filename);
-log.setLevel('all');
-
-//argv[2] chooses users actions; argv[3] is input parameter, ie; movie title
+//users actions
 var command= process.argv[2];
-var commandParam = process.argv[3];
-
-//concatenate multiple words in commandParam argument
-var commandParam = process.argv.slice(3).join("+");
-
+var commandArgv = process.argv.slice(3).join("+");
+var textFile = "log.txt";
 //Switch command
-function mySwitch(command, commandParam) {
+function mySwitch(command, commandArgv) {
 
     //choose which statement (command) to switch to and execute
     switch (command) {
 
         case "concert-this":
-            getConcert(commandParam);
+            getConcert(commandArgv);
             break;
-
         case "spotify-this-song":
-            getSpotify(commandParam);
+            getSpotify(commandArgv);
             break;
-
         case "movie-this":
-            getMovie(commandParam);
+            getMovie(commandArgv);
             break;
-
         case "do-what-it-says":
             doWhat();
             break;
@@ -47,129 +32,113 @@ function mySwitch(command, commandParam) {
             return;  
     }
 }
-
     //Bandsintown - command: concert-this
-    function getConcert() {
+    function getConcert(commandArgv) {
         //Fetch Bandsintown Keys
         var bandsintown = new Bandsintown(keys.bandsintown);
-        var artist = commandParam;
+        var artist = commandArgv;
         // Then run a request to the Bandsintown API with the artist specified
-        var queryUrl = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=BANDSINTOWN_ID";
+        var queryUrl = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=BANDSINTOWN_ID&tracker_count=10";
 
         request(queryUrl, function (error, response, body) {
-
-            // If the request is successful = 200
             if (!error && response.statusCode === 200) {
-                var body = JSON.parse(body);
-
-                //Simultaneously output to console and log.txt via NPM simple-node-logger
-                logOutput('================ Concert Info ================');
-                logOutput("Name of the venue " + body.Title);
-                logOutput("Venue location: " + body.Year);
-                logOutput("Date of the Event  " + body.imdbRating);
-                logOutput('==================THE END=================');
-
-            } else {
-                //else - throw error
-                console.log("Error occurred.")
-            }
+                body = JSON.parse(body);
+                for (var event in body) {
+                    display("Venue: ", body[event].venue.name);
+                    display("Location: ", body[event].venue.city + ", " + body[event].venue.region + ", " + body[event].venue.country);
+                    var m = moment(body[event].datetime).format('MM/DD/YYYY, h:mm a').split(", ");
+                    display("Date: ", m[0]);
+                    display("Time: ", m[1]);
+                    contentAdded();
+                }
+            } 
         });
     }
 // Fetch Spotify Keys
 var spotify = new Spotify(keys.spotify);
 
-// Writes to the log.txt file
-var getArtistNames = function (artist) {
-    return artist.name;
-};
 // Function for running a Spotify search - Command is spotify-this-song
-var getSpotify = function (songName) {
-    if (songName === undefined) {
-        songName = "The Sign";
+function getSpotify(commandArgv) {
+    var song = commandArgv;
+    if (!song) {
+      song = "The+Sign";
+      console.log(song);
     }
-
-    spotify.search(
-        {
-            type: "track",
-            query: command
-        },
-        function (err, data) {
-            if (err) {
-                console.log("Error occurred: " + err);
-                return;
-            }
-
-            var songs = data.tracks.items;
-
-            for (var i = 0; i < songs.length; i++) {
-                console.log(i);
-                console.log("artist(s): " + songs[i].artists.map(getArtistNames));
-                console.log("song name: " + songs[i].name);
-                console.log("preview song: " + songs[i].preview_url);
-                console.log("album: " + songs[i].album.name);
-                console.log("-----------------------------------");
-            }
-        }
-    );
-};
+    spotify.search({
+      type: 'track',
+      query: song
+    }, function(err, data) {
+      if (err) {
+        return console.log('Error occurred: ' + err);
+      }
+      data = data.tracks.items[0];
+      // console.log(data);
+      display("Artist(s) Name: ", data.artists[0].name);
+      display("Track Name: ", data.name);
+      display("Preview URL: ", data.preview_url);
+      display("Album: ", data.album.name);
+      contentAdded();
+    });
+  }
     //OMDB Movie - command: movie-this
-    function getMovie() {
-        // OMDB Movie - this MOVIE base code is from class files, I have modified for more data and assigned parse.body to a Var
-        var movieName = commandParam;
-        // Then run a request to the OMDB API with the movie specified
+    function getMovie(commandArgv) {
+        var movieName = commandArgv;
+        if (!movieName) {
+            movieName = "Mr.+Nobody"
+          };
         var queryUrl = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&tomatoes=true&apikey=trilogy";
-
         request(queryUrl, function (error, response, body) {
-
-            // If the request is successful = 200
             if (!error && response.statusCode === 200) {
                 var body = JSON.parse(body);
-
-                //Simultaneously output to console and log.txt via NPM simple-node-logger
-                logOutput('================ Movie Info ================');
-                logOutput("Title: " + body.Title);
-                logOutput("Release Year: " + body.Year);
-                logOutput("IMdB Rating: " + body.imdbRating);
-                logOutput("Country: " + body.Country);
-                logOutput("Language: " + body.Language);
-                logOutput("Plot: " + body.Plot);
-                logOutput("Actors: " + body.Actors);
-                logOutput("Rotten Tomatoes Rating: " + body.Ratings[2].Value);
-                logOutput("Rotten Tomatoes URL: " + body.tomatoURL);
-                logOutput('==================THE END=================');
-
-            } else {
-                //else - throw error
-                console.log("Error occurred.")
-            }
-            //Response if user does not type in a movie title
-            if (movieName === "Mr. Nobody") {
-                console.log("-----------------------");
-                console.log("If you haven't watched 'Mr. Nobody,' then you should: http://www.imdb.com/title/tt0485947/");
-                console.log("It's on Netflix!");
+                request(queryUrl, function(error, response, body) {
+                    if (!error && response.statusCode === 200) {
+                      body = JSON.parse(body);
+                      display("Title: ", body.Title);
+                      display("Year: ", body.Year);
+                      display("IMDB Rating: ", body.imdbRating);
+                      if (body.Ratings[2]) {
+                        display("Rotten Tomatoes Score: ", body.Ratings[2].Value);
+                      }
+                      display("Country: ", body.Country);
+                      display("Language: ", body.Language);
+                      display("Plot: ", body.Plot);
+                      display("Actors: ", body.Actors);
+                      contentAdded();
             }
         });
     }
 
-    //Function for command do-what-it-says; reads and splits random.txt file
-    //command: do-what-it-says
+    // do-what-it-says function
     function doWhat() {
-        //Read random.txt file
-        fs.readFile("random.txt", "utf8", function (error, data) {
-            if (!error);
-            console.log(data.toString());
-            //split text with comma delimiter
-            var cmds = data.toString().split(',');
+        fs.readFile("random.txt", "utf8", function(error, data) {
+        if (error) {
+            return console.log(error);
+        }
+        var dataArr = data.replace(/(\r\n|\n|\r)/gm, "").split(",");
+        for (var i = 0; i < dataArr.length; i += 2) {
+            var cmd = dataArr[i];
+            var arg = dataArr[i + 1].replace(/['"]+/g, '').split(' ').join("+");
+            mySwitch(command, commandArgv);
+        }
         });
     }
-
-
-
-}   //Closes mySwitch func - Everything except the call must be within this scope
-
-//Call mySwitch function
-mySwitch(command);
-
-
-
+    // console.log / appendFile function
+    function display(description, data) {
+        console.log(description + data);
+        appendFile(description + data + "\n");
+    }
+    function contentAdded() {
+        console.log("");
+        console.log("Content Added!");
+        console.log("-----------------------------------\n");
+        appendFile("-----------------------------------\n");
+      }
+      //appendFile function
+    function appendFile(arg) {
+        fs.appendFile(textFile, arg, function(err) {
+            if (err) {
+                console.log(err);
+            } else {}
+    });
+  }
 
