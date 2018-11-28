@@ -4,6 +4,9 @@ var fs = require("fs");
 var request = require("request");
 //var Spotify = require('spotify-web-api-node');
 var Spotify = require('node-spotify-api');
+//Require moment npm
+var moment = require('moment');
+moment().format();
 
 //creates log.txt file
 var filename = './log.txt';
@@ -16,33 +19,34 @@ var command= process.argv[2];
 var commandParam = process.argv[3];
 
 //concatenate multiple words in commandParam argument
-for (var i = 4; i < process.argv.length; i++) {
-    commandParam += '+' + process.argv[i];
-}
+var commandParam = process.argv.slice(3).join("+");
 
 //Switch command
-function mySwitch(command) {
+function mySwitch(command, commandParam) {
 
     //choose which statement (command) to switch to and execute
     switch (command) {
 
         case "concert-this":
-            getConcert();
+            getConcert(commandParam);
             break;
 
         case "spotify-this-song":
-            getSpotify();
+            getSpotify(commandParam);
             break;
 
         case "movie-this":
-            getMovie();
+            getMovie(commandParam);
             break;
 
         case "do-what-it-says":
             doWhat();
             break;
+        default:
+            console.log("Please use a valid command.")
+            return;  
     }
-
+}
 
     //Bandsintown - command: concert-this
     function getConcert() {
