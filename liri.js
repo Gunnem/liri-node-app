@@ -6,13 +6,12 @@ var Bandsintown = require("bandsintown");
 var Spotify = require('node-spotify-api');
 var moment = require('moment');
 //users actions
-var command= process.argv[2];
+var command = process.argv[2];
 var commandArgv = process.argv.slice(3).join("+");
 var textFile = "log.txt";
 //Switch command
 function mySwitch(command, commandArgv) {
 
-    //choose which statement (command) to switch to and execute
     switch (command) {
 
         case "concert-this":
@@ -89,21 +88,18 @@ function getSpotify(commandArgv) {
         var queryUrl = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&tomatoes=true&apikey=trilogy";
         request(queryUrl, function (error, response, body) {
             if (!error && response.statusCode === 200) {
-                var body = JSON.parse(body);
-                request(queryUrl, function(error, response, body) {
-                    if (!error && response.statusCode === 200) {
-                      body = JSON.parse(body);
-                      display("Title: ", body.Title);
-                      display("Year: ", body.Year);
-                      display("IMDB Rating: ", body.imdbRating);
-                      if (body.Ratings[2]) {
-                        display("Rotten Tomatoes Score: ", body.Ratings[2].Value);
-                      }
-                      display("Country: ", body.Country);
-                      display("Language: ", body.Language);
-                      display("Plot: ", body.Plot);
-                      display("Actors: ", body.Actors);
-                      contentAdded();
+                body = JSON.parse(body);
+                display("Title: ", body.Title);
+                display("Year: ", body.Year);
+                display("IMDB Rating: ", body.imdbRating);
+                if (body.Ratings[2]) {
+                display("Rotten Tomatoes Score: ", body.Ratings[2].Value);
+                }
+                display("Country: ", body.Country);
+                display("Language: ", body.Language);
+                display("Plot: ", body.Plot);
+                display("Actors: ", body.Actors);
+                contentAdded();
             }
         });
     }
@@ -116,8 +112,8 @@ function getSpotify(commandArgv) {
         }
         var dataArr = data.replace(/(\r\n|\n|\r)/gm, "").split(",");
         for (var i = 0; i < dataArr.length; i += 2) {
-            var cmd = dataArr[i];
-            var arg = dataArr[i + 1].replace(/['"]+/g, '').split(' ').join("+");
+            var command = dataArr[i];
+            var commandArgv = dataArr[i + 1].replace(/['"]+/g, '').split(' ').join("+");
             mySwitch(command, commandArgv);
         }
         });
@@ -134,8 +130,8 @@ function getSpotify(commandArgv) {
         appendFile("-----------------------------------\n");
       }
       //appendFile function
-    function appendFile(arg) {
-        fs.appendFile(textFile, arg, function(err) {
+    function appendFile(commandArgv) {
+        fs.appendFile(textFile, commandArgv, function(err) {
             if (err) {
                 console.log(err);
             } else {}
