@@ -3,6 +3,8 @@ var keys = require("./keys.js");
 var fs = require("fs");
 var request = require("request");
 var Spotify = require('node-spotify-api');
+// Fetch Spotify Keys
+var spotify = new Spotify(keys.spotify);
 var moment = require('moment');
 //users actions
 var command = process.argv[2];
@@ -48,8 +50,7 @@ function mySwitch(command, commandArgv) {
             } 
         });
     }
-// Fetch Spotify Keys
-var spotify = new Spotify(keys.spotify);
+
 
 // Function for running a Spotify search - Command is spotify-this-song
 function getSpotify(commandArgv) {
