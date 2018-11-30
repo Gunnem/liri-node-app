@@ -2,7 +2,6 @@ require("dotenv").config();
 var keys = require("./keys.js");
 var fs = require("fs");
 var request = require("request");
-var Bandsintown = require("bandsintown");
 var Spotify = require('node-spotify-api');
 var moment = require('moment');
 //users actions
@@ -10,34 +9,30 @@ var command = process.argv[2];
 var commandArgv = process.argv.slice(3).join("+");
 var textFile = "log.txt";
 //Switch command
+mySwitch(command, commandArgv);
 function mySwitch(command, commandArgv) {
-
     switch (command) {
-
-        case "concert-this":
-            getConcert(commandArgv);
-            break;
-        case "spotify-this-song":
-            getSpotify(commandArgv);
-            break;
-        case "movie-this":
-            getMovie(commandArgv);
-            break;
-        case "do-what-it-says":
-            doWhat();
-            break;
-        default:
-            console.log("Please use a valid command.")
-            return;  
+      case 'concert-this':
+        getConcert(commandArgv);
+        break;
+      case 'spotify-this-song':
+        getSpotify(commandArgv);
+        break;
+      case 'movie-this':
+        getMovie(commandArgv);
+        break;
+      case 'do-what-it-says':
+        doWhat();
+        break;
+      default:
+        console.log("Please use a valid command.")
+        return;
     }
-}
+  }
     //Bandsintown - command: concert-this
     function getConcert(commandArgv) {
-        //Fetch Bandsintown Keys
-        var bandsintown = new Bandsintown(keys.bandsintown);
         var artist = commandArgv;
-        // Then run a request to the Bandsintown API with the artist specified
-        var queryUrl = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=BANDSINTOWN_ID&tracker_count=10";
+        var queryUrl = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp&tracker_count=10";
 
         request(queryUrl, function (error, response, body) {
             if (!error && response.statusCode === 200) {
@@ -60,7 +55,7 @@ var spotify = new Spotify(keys.spotify);
 function getSpotify(commandArgv) {
     var song = commandArgv;
     if (!song) {
-      song = "The+Sign";
+      song = "The Sign";
       console.log(song);
     }
     spotify.search({
