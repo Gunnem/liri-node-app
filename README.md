@@ -2,4 +2,4 @@
 
 "concert-this" command
 
-![concert-this image](https://liri-node-app/images/concert-this.png)
+![concert-this image](https://github.com/Gunnem/liri-node-app/blob/master/images/concert-this.png)
